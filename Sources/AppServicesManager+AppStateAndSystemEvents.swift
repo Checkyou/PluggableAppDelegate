@@ -72,4 +72,16 @@ extension PluggableApplicationDelegate {
             service.applicationSignificantTimeChange?(application)
         }
     }
+    
+    @available(iOS 6.0, *)
+    open func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        let array = _services.compactMap({ $0.application?(application, supportedInterfaceOrientationsFor: window) })
+        
+        
+        return array.reduce(UIInterfaceOrientationMask(), { a, b in
+            var a = a
+            a.insert(b)
+            return a
+        })
+    }
 }
