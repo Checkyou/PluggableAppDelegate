@@ -30,29 +30,7 @@ open class PluggableApplicationDelegate: UIResponder, UIApplicationDelegate {
         return self.services
     }()
     
-    lazy var _methodRespondsCache: [String: Bool] = {
-        print(NSDate())
-        func generateProtocolMethods(_ protocol: Protocol, methodPrifix: String) -> [String] {
-            var count: UInt32 = 0
-            guard let list = protocol_copyMethodDescriptionList(`protocol`, false, true, &count) else { return [] }
-            return (0..<count)
-                .map({ list[Int($0)] })
-                .compactMap({ $0.name })
-                .map({ NSStringFromSelector($0) })
-                .filter({ $0.hasPrefix(methodPrifix) })
-        }
-        var methods = generateProtocolMethods(UIApplicationDelegate.self, methodPrifix: "application")
-        if #available(iOS 10.0, *) {
-            methods.append(contentsOf: generateProtocolMethods(UNUserNotificationCenterDelegate.self, methodPrifix: "userNotificationCenter"))
-        }
-        let result = methods.reduce([String: Bool]()) { (res, selector) in
-            var res = res
-            res[selector] = _services.contains(where: { $0.responds(to: Selector.init(selector)) })
-            return res
-        }
-        print(NSDate())
-        return result
-    }()
+    private var methodRespondsCache: [Selector: Bool] = [:]
 
     @discardableResult
     internal func apply<T, S>(_ work: (ApplicationService, @escaping (T) -> Void) -> S?, completionHandler: @escaping ([T]) -> Void) -> [S] {
@@ -81,10 +59,14 @@ open class PluggableApplicationDelegate: UIResponder, UIApplicationDelegate {
     }
     
     override open func responds(to aSelector: Selector!) -> Bool {
-        if let isHaveServicesResponds = _methodRespondsCache[NSStringFromSelector(aSelector)] {
+        if let isHaveServicesResponds = methodRespondsCache[aSelector] {
             return isHaveServicesResponds
         } else {
-            return super.responds(to: aSelector)
+            let responds = _services.reduce(false, { prev, service in
+                service.responds(to: aSelector) || prev
+            })
+            methodRespondsCache[aSelector] = responds
+            return responds
         }
     }
 }
