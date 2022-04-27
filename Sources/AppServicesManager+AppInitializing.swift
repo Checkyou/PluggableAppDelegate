@@ -29,6 +29,9 @@ extension PluggableApplicationDelegate {
                 result = true
             }
         }
+        
+        UNUserNotificationCenter.current().delegate = self
+        
         return result
     }
 
