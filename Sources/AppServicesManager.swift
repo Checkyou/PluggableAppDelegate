@@ -15,7 +15,7 @@ import UserNotifications
 public protocol ApplicationService: UIApplicationDelegate, UNUserNotificationCenterDelegate {}
 
 extension ApplicationService {
-    public var window: UIWindow? {
+    public var window: UIWindow! {
         get { UIApplication.shared.delegate?.window ?? nil }
         set { (UIApplication.shared.delegate as? PluggableApplicationDelegate)?.window = newValue }
     }
