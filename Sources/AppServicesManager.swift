@@ -16,7 +16,8 @@ public protocol ApplicationService: UIApplicationDelegate, UNUserNotificationCen
 
 extension ApplicationService {
     public var window: UIWindow? {
-        return UIApplication.shared.delegate?.window ?? nil
+        get { UIApplication.shared.delegate?.window ?? nil }
+        set { (UIApplication.shared.delegate as? PluggableApplicationDelegate)?.window = newValue }
     }
 }
 
